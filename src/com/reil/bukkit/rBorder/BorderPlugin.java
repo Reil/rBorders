@@ -22,6 +22,7 @@ public class BorderPlugin extends JavaPlugin{
 	Location SpawnLocation;
 	int BorderSizeSq;
 	int BorderSize;
+	String BorderAlert;
 	rBorderListener Listener = new rBorderListener(this);
 	
 	/* If a player has an X and Z between +-DefiniteSquare, there is no need to calculate distance. */
@@ -48,6 +49,7 @@ public class BorderPlugin extends JavaPlugin{
 		loader.registerEvent(Event.Type.PLAYER_TELEPORT, Listener, Event.Priority.Highest, this);
 		
 		BorderSize = new Integer(Props.getProperty("size", "5000"));
+		BorderAlert = Props.getProperty("Alert", "You have reached the border!");
 		BorderSizeSq = BorderSize * BorderSize;
 		DefiniteSquare = (int) Math.sqrt(.5 * BorderSizeSq);
 		log.info("[rBorder] Loaded.  Size:" + BorderSize);
@@ -60,20 +62,14 @@ public class BorderPlugin extends JavaPlugin{
 		
 	}
 	public boolean inBorder(Location checkHere) {
-		int X = SpawnLocation.getBlockX() - checkHere.getBlockX();
-		int Z = SpawnLocation.getBlockZ() - checkHere.getBlockZ();
+		int X = Math.abs(SpawnLocation.getBlockX() - checkHere.getBlockX());
+		int Z = Math.abs(SpawnLocation.getBlockZ() - checkHere.getBlockZ());
 		// If statements are cheaper than squaring twice!
 		// Definitely in the circle?
-		if (X > -1 * DefiniteSquare && 
-				X < DefiniteSquare &&
-				Z > -1 * DefiniteSquare &&
-				Z < DefiniteSquare)
+		if (X < DefiniteSquare && Z < DefiniteSquare)
 			return true;
 		// Definitely not in the circle?
-		if (X < -1* BorderSize ||
-				X > BorderSize ||
-				Z < -1 * BorderSize ||
-				Z > BorderSize)
+		if (X > BorderSize || Z > BorderSize)
 			return false;
 		// Must know for sure.
 		if ( X*X + Z*Z > BorderSizeSq )
