@@ -55,7 +55,6 @@ public class BorderPlugin extends JavaPlugin{
 		log.info("[rBorder] Loaded.  Size:" + BorderSize);
 		SpawnLocation = getServer().getWorlds()[0].getSpawnLocation();
 		log.info("[rBorder]: Spawn location:" + SpawnLocation.getBlockX() + ", " + SpawnLocation.getBlockY() + ", " + SpawnLocation.getBlockZ()+ ".");
-		// TODO: Register events, listener
 	}
 
 	public void onDisable() {

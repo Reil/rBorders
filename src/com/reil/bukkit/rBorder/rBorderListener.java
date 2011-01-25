@@ -12,7 +12,7 @@ public class rBorderListener extends PlayerListener{
 	public void onPlayerMove(PlayerMoveEvent event){
 		if (rBorder.inBorder(event.getTo()))
 			return;
-		event.getPlayer().sendMessage("");
+		event.getPlayer().sendMessage(rBorder.BorderAlert);
 		event.setCancelled(true);
 		event.getPlayer().teleportTo(event.getFrom());
 		return;
@@ -22,7 +22,7 @@ public class rBorderListener extends PlayerListener{
 			return;
 		rBorder.log.info("Border hit by: " + event.getPlayer().getDisplayName());
 		event.setCancelled(true);
-		event.getPlayer().sendMessage("");
+		event.getPlayer().sendMessage(rBorder.BorderAlert);
 		return;
 	}
 	
