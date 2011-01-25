@@ -1,5 +1,6 @@
 package com.reil.bukkit.rBorder;
 
+import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerListener;
 import org.bukkit.event.player.PlayerMoveEvent;
 
@@ -12,17 +13,19 @@ public class rBorderListener extends PlayerListener{
 	public void onPlayerMove(PlayerMoveEvent event){
 		if (rBorder.inBorder(event.getTo()))
 			return;
-		event.getPlayer().sendMessage(rBorder.BorderAlert);
 		event.setCancelled(true);
-		event.getPlayer().teleportTo(event.getFrom());
+		Player barMe = event.getPlayer();
+		barMe.sendMessage(rBorder.BorderAlert);
+		barMe.teleportTo(event.getFrom());
 		return;
 	}
 	public void onPlayerTeleport(PlayerMoveEvent event){
 		if (rBorder.inBorder(event.getTo()))
 			return;
-		rBorder.log.info("Border hit by: " + event.getPlayer().getDisplayName());
 		event.setCancelled(true);
-		event.getPlayer().sendMessage(rBorder.BorderAlert);
+		Player barMe = event.getPlayer();
+		barMe.sendMessage(rBorder.BorderAlert);
+		barMe.teleportTo(event.getFrom());
 		return;
 	}
 	
