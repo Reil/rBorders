@@ -19,11 +19,13 @@ public class BorderPlugin extends JavaPlugin{
 	Logger log = Logger.getLogger("Minecraft");
 	File Folder;
 	Properties Props = new Properties();
-	Location SpawnLocation;
+	int SpawnX;
+	int SpawnZ;
 	int BorderSizeSq;
 	int BorderSize;
 	String BorderAlert;
 	rBorderListener Listener = new rBorderListener(this);
+	rBorderVehicleListener Listener2 = new rBorderVehicleListener(this);
 	
 	/* If a player has an X and Z between +-DefiniteSquare, there is no need to calculate distance. */
 	int DefiniteSquare;
@@ -47,13 +49,16 @@ public class BorderPlugin extends JavaPlugin{
 		PluginManager loader = getServer().getPluginManager();
 		loader.registerEvent(Event.Type.PLAYER_MOVE, Listener, Event.Priority.Highest, this);
 		loader.registerEvent(Event.Type.PLAYER_TELEPORT, Listener, Event.Priority.Highest, this);
+		loader.registerEvent(Event.Type.VEHICLE_MOVE, Listener2, Event.Priority.Highest, this);
 		
 		BorderSize = new Integer(Props.getProperty("size", "5000"));
 		BorderAlert = Props.getProperty("Alert", "You have reached the border!");
 		BorderSizeSq = BorderSize * BorderSize;
 		DefiniteSquare = (int) Math.sqrt(.5 * BorderSizeSq);
 		log.info("[rBorder] Loaded.  Size:" + BorderSize);
-		SpawnLocation = getServer().getWorlds()[0].getSpawnLocation();
+		Location SpawnLocation = getServer().getWorlds()[0].getSpawnLocation();
+		SpawnX = SpawnLocation.getBlockX();
+		SpawnZ = SpawnLocation.getBlockZ();
 		log.info("[rBorder]: Spawn location:" + SpawnLocation.getBlockX() + ", " + SpawnLocation.getBlockY() + ", " + SpawnLocation.getBlockZ()+ ".");
 	}
 
@@ -61,8 +66,8 @@ public class BorderPlugin extends JavaPlugin{
 		
 	}
 	public boolean inBorder(Location checkHere) {
-		int X = Math.abs(SpawnLocation.getBlockX() - checkHere.getBlockX());
-		int Z = Math.abs(SpawnLocation.getBlockZ() - checkHere.getBlockZ());
+		int X = Math.abs(SpawnX - checkHere.getBlockX());
+		int Z = Math.abs(SpawnZ - checkHere.getBlockZ());
 		// If statements are cheaper than squaring twice!
 		// Definitely in the circle?
 		if (X < DefiniteSquare && Z < DefiniteSquare)
