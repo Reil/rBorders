@@ -3,6 +3,7 @@ package com.reil.bukkit.rBorder;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
 import java.util.logging.Logger;
@@ -24,6 +25,8 @@ public class BorderPlugin extends JavaPlugin{
 	int BorderSizeSq;
 	int BorderSize;
 	String BorderAlert;
+	String BorderAlertSpawn;
+	Location SpawnLocation;
 	rBorderListener Listener = new rBorderListener(this);
 	rBorderVehicleListener Listener2 = new rBorderVehicleListener(this);
 	
@@ -49,17 +52,26 @@ public class BorderPlugin extends JavaPlugin{
 		PluginManager loader = getServer().getPluginManager();
 		loader.registerEvent(Event.Type.PLAYER_MOVE, Listener, Event.Priority.Highest, this);
 		loader.registerEvent(Event.Type.PLAYER_TELEPORT, Listener, Event.Priority.Highest, this);
+		loader.registerEvent(Event.Type.PLAYER_JOIN, Listener, Event.Priority.Highest, this);
 		loader.registerEvent(Event.Type.VEHICLE_MOVE, Listener2, Event.Priority.Highest, this);
 		
 		BorderSize = new Integer(Props.getProperty("size", "5000"));
-		BorderAlert = Props.getProperty("Alert", "You have reached the border!");
+		BorderAlert      = Props.getProperty("Alert"     , "You have reached the border!");
+		BorderAlertSpawn = Props.getProperty("AlertSpawn", "You logged in outside the border!");
 		BorderSizeSq = BorderSize * BorderSize;
 		DefiniteSquare = (int) Math.sqrt(.5 * BorderSizeSq);
 		log.info("[rBorder] Loaded.  Size:" + BorderSize);
-		Location SpawnLocation = getServer().getWorlds()[0].getSpawnLocation();
+		SpawnLocation = getServer().getWorlds()[0].getSpawnLocation();
 		SpawnX = SpawnLocation.getBlockX();
 		SpawnZ = SpawnLocation.getBlockZ();
 		log.info("[rBorder]: Spawn location:" + SpawnLocation.getBlockX() + ", " + SpawnLocation.getBlockY() + ", " + SpawnLocation.getBlockZ()+ ".");
+		try {
+			Props.store(new FileOutputStream(Folder + "/rBorder.properties"), "Border Plugin properties");
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public void onDisable() {
