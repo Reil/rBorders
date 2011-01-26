@@ -58,6 +58,8 @@ public class BorderPlugin extends JavaPlugin{
 		BorderSize = new Integer(Props.getProperty("size", "5000"));
 		BorderAlert      = Props.getProperty("Alert"     , "You have reached the border!");
 		BorderAlertSpawn = Props.getProperty("AlertSpawn", "You logged in outside the border!");
+		Props.setProperty("Alert", BorderAlert);
+		Props.setProperty("AlertSpawn", "You logged in outside the border!");
 		BorderSizeSq = BorderSize * BorderSize;
 		DefiniteSquare = (int) Math.sqrt(.5 * BorderSizeSq);
 		log.info("[rBorder] Loaded.  Size:" + BorderSize);
@@ -72,6 +74,7 @@ public class BorderPlugin extends JavaPlugin{
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		
 	}
 
 	public void onDisable() {
