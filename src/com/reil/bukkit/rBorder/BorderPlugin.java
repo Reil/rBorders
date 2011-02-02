@@ -40,14 +40,20 @@ public class BorderPlugin extends JavaPlugin{
 		this.Folder = folder;
 	}
 	
-	public void onEnable() {
+	public void onEnable(){
 		// Open plugin properties (just the border size, for now)
 		try {
 			FileInputStream file = new FileInputStream(Folder + "/rBorder.properties");
 			Props.load(file);
 			file.close();
 		} catch (FileNotFoundException e) {
-			e.printStackTrace();
+			log.info("[rBorder] Can't find properties file! Creating file and using defaults.");
+			File createMe = new File(Folder + "/rBorder.properties");
+			try {
+				createMe.createNewFile();
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -57,9 +63,10 @@ public class BorderPlugin extends JavaPlugin{
 		loader.registerEvent(Event.Type.PLAYER_JOIN, Listener, Event.Priority.Highest, this);
 		loader.registerEvent(Event.Type.VEHICLE_MOVE, Listener2, Event.Priority.Highest, this);
 		
-		BorderSize = new Integer(Props.getProperty("size", "5000"));
+		BorderSize = new Integer(Props.getProperty("size", "1400"));
 		BorderAlert      = Props.getProperty("Alert"     , "You have reached the border!");
 		BorderAlertSpawn = Props.getProperty("AlertSpawn", "You logged in outside the border!");
+		Props.setProperty("size", Integer.toString(BorderSize));
 		Props.setProperty("Alert", BorderAlert);
 		Props.setProperty("AlertSpawn", BorderAlertSpawn);
 		BorderSizeSq = BorderSize * BorderSize;
