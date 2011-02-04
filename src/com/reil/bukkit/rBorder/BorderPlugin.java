@@ -1,10 +1,14 @@
 package com.reil.bukkit.rBorder;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.util.Date;
 import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -42,18 +46,25 @@ public class BorderPlugin extends JavaPlugin{
 	
 	public void onEnable(){
 		// Open plugin properties (just the border size, for now)
+		FileInputStream file;
 		try {
-			FileInputStream file = new FileInputStream(Folder + "/rBorder.properties");
-			Props.load(file);
-			file.close();
-		} catch (FileNotFoundException e) {
-			log.info("[rBorder] Can't find properties file! Creating file and using defaults.");
-			File createMe = new File(Folder + "/rBorder.properties");
-			try {
-				createMe.createNewFile();
-			} catch (IOException e1) {
-				e1.printStackTrace();
+			if (!Folder.exists()){
+				Folder.mkdir();
 			}
+			File propFile = new File(Folder +"/rBorder.properties");
+			if (!propFile.exists()){
+				log.info("[rBorder] Can't find properties file! Creating file and using defaults.");
+				propFile.createNewFile();
+				Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(propFile), "UTF8"));
+            	Date timestamp = new Date();
+            	writer.write("# Properties file generated on " + timestamp.toString());
+            	writer.close();
+			}
+			file = new FileInputStream(propFile);
+			Props.load(file);
+		} catch (FileNotFoundException e) {
+			log.info("[rBorder] Failed to generate properties file!");
+			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
