@@ -83,7 +83,7 @@ public class BorderPlugin extends JavaPlugin{
 		BorderSizeSq = BorderSize * BorderSize;
 		DefiniteSquare = (int) Math.sqrt(.5 * BorderSizeSq);
 		log.info("[rBorder] Loaded.  Size:" + BorderSize);
-		SpawnLocation = getServer().getWorlds()[0].getSpawnLocation();
+		SpawnLocation = getServer().getWorlds().get(0).getSpawnLocation();
 		SpawnX = SpawnLocation.getBlockX();
 		SpawnZ = SpawnLocation.getBlockZ();
 		log.info("[rBorder]: Spawn location:" + SpawnLocation.getBlockX() + ", " + SpawnLocation.getBlockY() + ", " + SpawnLocation.getBlockZ()+ ".");
