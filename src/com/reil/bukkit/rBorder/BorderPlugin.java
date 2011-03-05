@@ -13,10 +13,7 @@ import java.util.Properties;
 import java.util.logging.Logger;
 
 import org.bukkit.Location;
-import org.bukkit.Server;
 import org.bukkit.event.Event;
-import org.bukkit.plugin.PluginDescriptionFile;
-import org.bukkit.plugin.PluginLoader;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -37,15 +34,10 @@ public class BorderPlugin extends JavaPlugin{
 	/* If a player has an X and Z between +-DefiniteSquare, there is no need to calculate distance. */
 	int DefiniteSquare;
 	
-	public BorderPlugin(PluginLoader pluginLoader, Server instance,
-			PluginDescriptionFile desc, File folder, File plugin,
-			ClassLoader cLoader) {
-		super(pluginLoader, instance, desc, folder, plugin, cLoader);
-		this.Folder = folder;
-	}
 	
 	public void onEnable(){
 		// Open plugin properties (just the border size, for now)
+		Folder = getDataFolder();
 		FileInputStream file;
 		try {
 			if (!Folder.exists()){
