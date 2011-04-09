@@ -1,111 +1,82 @@
 package com.reil.bukkit.rBorder;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.util.Date;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Logger;
 
 import org.bukkit.Location;
+import org.bukkit.Server;
+import org.bukkit.World;
 import org.bukkit.event.Event;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.util.config.Configuration;
+import org.bukkit.util.config.ConfigurationNode;
 
 public class BorderPlugin extends JavaPlugin{
 	Logger log = Logger.getLogger("Minecraft");
 	File Folder;
-	Properties Props = new Properties();
-	int SpawnX;
-	int SpawnZ;
-	int BorderSizeSq;
-	int BorderSize;
 	String BorderAlert;
-	String BorderAlertSpawn;
-	Location SpawnLocation;
+	Properties Props = new Properties();
+	HashMap <World, ArrayList<Border>>Borders = new HashMap <World, ArrayList<Border>>();
 	rBorderListener Listener = new rBorderListener(this);
 	rBorderVehicleListener Listener2 = new rBorderVehicleListener(this);
 	
-	/* If a player has an X and Z between +-DefiniteSquare, there is no need to calculate distance. */
-	int DefiniteSquare;
-	
+	/* If a player has an X and Z between +-DefiniteSquare, there is no need to calculate distance. */	
 	
 	public void onEnable(){
-		// Open plugin properties (just the border size, for now)
-		Folder = getDataFolder();
-		FileInputStream file;
-		try {
-			if (!Folder.exists()){
-				Folder.mkdir();
-			}
-			File propFile = new File(Folder +"/rBorder.properties");
-			if (!propFile.exists()){
-				log.info("[rBorder] Can't find properties file! Creating file and using defaults.");
-				propFile.createNewFile();
-				Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(propFile), "UTF8"));
-            	Date timestamp = new Date();
-            	writer.write("# Properties file generated on " + timestamp.toString());
-            	writer.close();
-			}
-			file = new FileInputStream(propFile);
-			Props.load(file);
-		} catch (FileNotFoundException e) {
-			log.info("[rBorder] Failed to generate properties file!");
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		PluginManager loader = getServer().getPluginManager();
+		Server MCServer = getServer(); 
+		PluginManager loader = MCServer.getPluginManager();
 		loader.registerEvent(Event.Type.PLAYER_MOVE, Listener, Event.Priority.Highest, this);
 		loader.registerEvent(Event.Type.PLAYER_TELEPORT, Listener, Event.Priority.Highest, this);
 		loader.registerEvent(Event.Type.PLAYER_JOIN, Listener, Event.Priority.Highest, this);
 		loader.registerEvent(Event.Type.VEHICLE_MOVE, Listener2, Event.Priority.Highest, this);
-		
-		BorderSize = new Integer(Props.getProperty("size", "1400"));
-		BorderAlert      = Props.getProperty("Alert"     , "You have reached the border!");
-		BorderAlertSpawn = Props.getProperty("AlertSpawn", "You logged in outside the border!");
-		Props.setProperty("size", Integer.toString(BorderSize));
-		Props.setProperty("Alert", BorderAlert);
-		Props.setProperty("AlertSpawn", BorderAlertSpawn);
-		BorderSizeSq = BorderSize * BorderSize;
-		DefiniteSquare = (int) Math.sqrt(.5 * BorderSizeSq);
-		log.info("[rBorder] Loaded.  Size:" + BorderSize);
-		SpawnLocation = getServer().getWorlds().get(0).getSpawnLocation();
-		SpawnX = SpawnLocation.getBlockX();
-		SpawnZ = SpawnLocation.getBlockZ();
-		log.info("[rBorder]: Spawn location:" + SpawnLocation.getBlockX() + ", " + SpawnLocation.getBlockY() + ", " + SpawnLocation.getBlockZ()+ ".");
-		try {
-			Props.store(new FileOutputStream(Folder + "/rBorder.properties"), "Border Plugin properties");
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
+
+		Configuration config = getConfiguration();
+		config.load();
+		Map<String, ConfigurationNode> nodes = config.getNodes("borders");
+		for(ConfigurationNode border : nodes.values()){ 
+			World thisWorld = MCServer.getWorld(border.getString("world"));
+			Location spawn = thisWorld.getSpawnLocation();
+			Border newBorder = new Border(  border.getDouble("x"     , spawn.getX() ),
+											border.getDouble("z"     , spawn.getZ() ),
+											border.getDouble("radius", 1400)        );
+			log.info("Border loaded:" + newBorder);
+			if (!Borders.containsKey(thisWorld)){
+				ArrayList <Border> newArray = new ArrayList<Border>();
+				Borders.put(thisWorld, newArray);
+			}
+			Borders.get(thisWorld).add(newBorder);
 		}
-		
+		BorderAlert = config.getString("borderalert");
+		log.info("[rBorders] Loaded!");
 	}
 
 	public void onDisable() {
 		
 	}
 	public boolean inBorder(Location checkHere) {
-		int X = Math.abs(SpawnX - checkHere.getBlockX());
-		int Z = Math.abs(SpawnZ - checkHere.getBlockZ());
-		// If statements are cheaper than squaring twice!
-		// Definitely in the circle?
-		if (X < DefiniteSquare && Z < DefiniteSquare)
+		// If there aren't borders, we assume it's a limitless map.
+		if (!Borders.containsKey(checkHere.getWorld()))
 			return true;
-		// Definitely not in the circle?
-		if (X > BorderSize || Z > BorderSize)
-			return false;
-		// Must know for sure.
-		if ( X*X + Z*Z > BorderSizeSq )
-			return false;
-		else return true;
+		for (Border amIHere : Borders.get(checkHere.getWorld())){
+			int X = (int) Math.abs(amIHere.centerX - checkHere.getBlockX());
+			int Z = (int) Math.abs(amIHere.centerZ - checkHere.getBlockZ());
+			// If statements are cheaper than squaring twice!
+			// Definitely in the circle
+			if (X < amIHere.definiteSq && Z < amIHere.definiteSq)
+				return true;
+			// Definitely not in the circle?
+			if (X > amIHere.radius || Z > amIHere.radius)
+				continue;
+			// Must know for sure.
+			if ( X*X + Z*Z < amIHere.radiusSq )
+				return true;
+		}
+		return false;
 	}
 
 }

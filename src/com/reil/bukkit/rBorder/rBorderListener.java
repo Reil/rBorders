@@ -1,43 +1,45 @@
 package com.reil.bukkit.rBorder;
 
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerListener;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 
 public class rBorderListener extends PlayerListener{
 	public BorderPlugin rBorder;
 	public rBorderListener(BorderPlugin rBorder) {
 		this.rBorder = rBorder;
 	}
-	public void onPlayerJoin(PlayerEvent event){
+	public void onPlayerJoin(PlayerJoinEvent event){
 		Player checkMe = event.getPlayer();
-		//Location spawnedHere = checkMe.getLocation();
 		if (rBorder.inBorder(checkMe.getLocation())) return;
-		checkMe.teleportTo(rBorder.SpawnLocation);
-		/*
-		double angle = Math.atan2(spawnedHere.getZ(), spawnedHere.getX());
-		spawnedHere.setX(rBorder.BorderSize * Math.cos(angle));
-		spawnedHere.setZ(rBorder.BorderSize * Math.sin(angle));
-		checkMe.teleportTo(spawnedHere);*/
+		checkMe.teleport(checkMe.getWorld().getSpawnLocation());
 	}
 	public void onPlayerMove(PlayerMoveEvent event){
 		if (rBorder.inBorder(event.getTo()))
 			return;
-		event.setCancelled(true);
 		Player barMe = event.getPlayer();
-		barMe.sendMessage(rBorder.BorderAlert);
-		barMe.teleportTo(event.getFrom());
+		if(rBorder.inBorder(event.getFrom())){
+			barMe.sendMessage(rBorder.BorderAlert);
+			event.setTo(event.getFrom());
+			barMe.teleport(event.getFrom());
+			return;
+		} else {
+			barMe.damage(1);
+		}
 		return;
 	}
-	public void onPlayerTeleport(PlayerMoveEvent event){
+	public void onPlayerTeleport(PlayerTeleportEvent event){
 		if (rBorder.inBorder(event.getTo()))
 			return;
-		event.setCancelled(true);
 		Player barMe = event.getPlayer();
 		barMe.sendMessage(rBorder.BorderAlert);
-		barMe.teleportTo(event.getFrom());
-		return;
+		if(rBorder.inBorder(event.getFrom())){
+			event.setTo(event.getFrom());
+			barMe.teleport(event.getFrom());
+		} else
+			barMe.teleport(barMe.getWorld().getSpawnLocation());
 	}
 	
 }
